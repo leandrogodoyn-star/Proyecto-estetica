@@ -1,0 +1,1018 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <title>Bella Estética - Reserva tu Turno</title>
+    
+    <!-- Fuentes elegantes -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@300;400;500;600;700&family=Montserrat:wght@300;400;500;600&display=swap" rel="stylesheet">
+    
+    <style>
+        /* ==========================================
+           VARIABLES - Paleta Spa Luxury
+           ========================================== */
+        :root {
+            --color-primary: #D4AF86;
+            --color-primary-light: #E8D5B8;
+            --color-secondary: #9D8B7A;
+            --color-accent: #C9A86A;
+            --color-bg: #FAF8F5;
+            --color-white: #FFFFFF;
+            --color-text: #2C2C2C;
+            --color-text-light: #7A7A7A;
+            --color-border: #E8E3DC;
+            --color-success: #8FB894;
+            
+            --font-display: 'Cormorant Garamond', serif;
+            --font-body: 'Montserrat', sans-serif;
+            
+            --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.06);
+            --shadow-md: 0 4px 16px rgba(0, 0, 0, 0.08);
+            --shadow-lg: 0 8px 32px rgba(0, 0, 0, 0.12);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        body {
+            font-family: var(--font-body);
+            background: var(--color-bg);
+            color: var(--color-text);
+            overflow-x: hidden;
+            -webkit-font-smoothing: antialiased;
+            height: 100vh;
+            position: fixed;
+            width: 100%;
+        }
+
+        /* ==========================================
+           APP CONTAINER
+           ========================================== */
+        .app {
+            max-width: 480px;
+            margin: 0 auto;
+            height: 100vh;
+            background: var(--color-bg);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .screen {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            display: none;
+            flex-direction: column;
+            opacity: 0;
+            transform: translateX(100%);
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .screen.active {
+            display: flex;
+            opacity: 1;
+            transform: translateX(0);
+        }
+
+        .screen.exit-left {
+            transform: translateX(-100%);
+        }
+
+        /* ==========================================
+           HEADER
+           ========================================== */
+        .header {
+            padding: 1rem 1.5rem;
+            background: var(--color-white);
+            border-bottom: 1px solid var(--color-border);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            min-height: 60px;
+        }
+
+        .back-btn {
+            background: none;
+            border: none;
+            font-size: 1.5rem;
+            color: var(--color-text);
+            cursor: pointer;
+            padding: 0.5rem;
+            margin-left: -0.5rem;
+        }
+
+        .header-title {
+            font-family: var(--font-display);
+            font-size: 1.5rem;
+            font-weight: 600;
+            color: var(--color-text);
+            letter-spacing: 0.5px;
+        }
+
+        .header-spacer {
+            width: 40px;
+        }
+
+        /* ==========================================
+           CONTENT
+           ========================================== */
+        .content {
+            flex: 1;
+            overflow-y: auto;
+            -webkit-overflow-scrolling: touch;
+        }
+
+        .content-inner {
+            padding: 1.5rem;
+        }
+
+        /* ==========================================
+           PANTALLA DE INICIO
+           ========================================== */
+        .welcome-screen {
+            background: linear-gradient(135deg, var(--color-primary-light) 0%, var(--color-bg) 100%);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            padding: 2rem;
+        }
+
+        .logo {
+            width: 120px;
+            height: 120px;
+            background: var(--color-white);
+            border-radius: 30px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-family: var(--font-display);
+            font-size: 3rem;
+            color: var(--color-primary);
+            margin-bottom: 2rem;
+            box-shadow: var(--shadow-lg);
+        }
+
+        .welcome-title {
+            font-family: var(--font-display);
+            font-size: 2.5rem;
+            font-weight: 600;
+            color: var(--color-text);
+            margin-bottom: 1rem;
+            letter-spacing: 1px;
+        }
+
+        .welcome-subtitle {
+            font-size: 1.1rem;
+            color: var(--color-text-light);
+            margin-bottom: 3rem;
+            line-height: 1.6;
+        }
+
+        /* ==========================================
+           BOTONES
+           ========================================== */
+        .btn {
+            width: 100%;
+            padding: 1.2rem;
+            border: none;
+            border-radius: 12px;
+            font-family: var(--font-body);
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            letter-spacing: 0.5px;
+        }
+
+        .btn-primary {
+            background: var(--color-primary);
+            color: var(--color-white);
+            box-shadow: var(--shadow-md);
+        }
+
+        .btn-primary:active {
+            transform: scale(0.98);
+            box-shadow: var(--shadow-sm);
+        }
+
+        .btn-outline {
+            background: transparent;
+            color: var(--color-primary);
+            border: 2px solid var(--color-primary);
+        }
+
+        /* ==========================================
+           SERVICIOS GRID
+           ========================================== */
+        .services-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 1rem;
+            margin-bottom: 2rem;
+        }
+
+        .service-card {
+            background: var(--color-white);
+            border-radius: 16px;
+            padding: 1.5rem;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            border: 2px solid transparent;
+            box-shadow: var(--shadow-sm);
+        }
+
+        .service-card:active {
+            transform: scale(0.95);
+        }
+
+        .service-card.selected {
+            border-color: var(--color-primary);
+            background: linear-gradient(135deg, var(--color-white) 0%, var(--color-primary-light) 100%);
+            box-shadow: var(--shadow-md);
+        }
+
+        .service-icon {
+            font-size: 2.5rem;
+            margin-bottom: 1rem;
+        }
+
+        .service-name {
+            font-family: var(--font-display);
+            font-size: 1.2rem;
+            font-weight: 600;
+            color: var(--color-text);
+            margin-bottom: 0.5rem;
+        }
+
+        .service-price {
+            font-size: 1.1rem;
+            color: var(--color-primary);
+            font-weight: 600;
+        }
+
+        .service-duration {
+            font-size: 0.9rem;
+            color: var(--color-text-light);
+            margin-top: 0.5rem;
+        }
+
+        /* ==========================================
+           CALENDARIO
+           ========================================== */
+        .calendar {
+            background: var(--color-white);
+            border-radius: 16px;
+            padding: 1.5rem;
+            margin-bottom: 1.5rem;
+            box-shadow: var(--shadow-sm);
+        }
+
+        .calendar-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1.5rem;
+        }
+
+        .calendar-month {
+            font-family: var(--font-display);
+            font-size: 1.5rem;
+            font-weight: 600;
+            color: var(--color-text);
+        }
+
+        .calendar-nav {
+            background: none;
+            border: none;
+            font-size: 1.5rem;
+            color: var(--color-primary);
+            cursor: pointer;
+            padding: 0.5rem;
+        }
+
+        .calendar-days {
+            display: grid;
+            grid-template-columns: repeat(7, 1fr);
+            gap: 0.5rem;
+            margin-bottom: 1rem;
+        }
+
+        .calendar-day-label {
+            text-align: center;
+            font-size: 0.75rem;
+            color: var(--color-text-light);
+            font-weight: 600;
+            padding: 0.5rem 0;
+        }
+
+        .calendar-day {
+            aspect-ratio: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 12px;
+            font-size: 0.95rem;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            background: var(--color-bg);
+            color: var(--color-text);
+        }
+
+        .calendar-day:hover {
+            background: var(--color-primary-light);
+        }
+
+        .calendar-day.selected {
+            background: var(--color-primary);
+            color: var(--color-white);
+            font-weight: 600;
+        }
+
+        .calendar-day.disabled {
+            color: var(--color-border);
+            cursor: not-allowed;
+            background: transparent;
+        }
+
+        /* ==========================================
+           HORARIOS
+           ========================================== */
+        .time-slots {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 0.75rem;
+        }
+
+        .time-slot {
+            padding: 1rem;
+            background: var(--color-white);
+            border: 2px solid var(--color-border);
+            border-radius: 12px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            font-weight: 500;
+        }
+
+        .time-slot:active {
+            transform: scale(0.95);
+        }
+
+        .time-slot.selected {
+            background: var(--color-primary);
+            color: var(--color-white);
+            border-color: var(--color-primary);
+        }
+
+        .time-slot.disabled {
+            background: var(--color-bg);
+            color: var(--color-text-light);
+            cursor: not-allowed;
+            opacity: 0.5;
+        }
+
+        /* ==========================================
+           FORMULARIO
+           ========================================== */
+        .form-group {
+            margin-bottom: 1.5rem;
+        }
+
+        .form-label {
+            display: block;
+            font-weight: 500;
+            color: var(--color-text);
+            margin-bottom: 0.5rem;
+            font-size: 0.95rem;
+        }
+
+        .form-input {
+            width: 100%;
+            padding: 1rem;
+            border: 2px solid var(--color-border);
+            border-radius: 12px;
+            font-family: var(--font-body);
+            font-size: 1rem;
+            transition: all 0.3s ease;
+            background: var(--color-white);
+        }
+
+        .form-input:focus {
+            outline: none;
+            border-color: var(--color-primary);
+            box-shadow: 0 0 0 4px rgba(212, 175, 134, 0.1);
+        }
+
+        /* ==========================================
+           RESUMEN
+           ========================================== */
+        .summary-card {
+            background: var(--color-white);
+            border-radius: 16px;
+            padding: 1.5rem;
+            margin-bottom: 1.5rem;
+            box-shadow: var(--shadow-md);
+        }
+
+        .summary-title {
+            font-family: var(--font-display);
+            font-size: 1.3rem;
+            font-weight: 600;
+            color: var(--color-text);
+            margin-bottom: 1rem;
+            padding-bottom: 1rem;
+            border-bottom: 1px solid var(--color-border);
+        }
+
+        .summary-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 0.75rem 0;
+            border-bottom: 1px solid var(--color-bg);
+        }
+
+        .summary-item:last-child {
+            border-bottom: none;
+        }
+
+        .summary-label {
+            color: var(--color-text-light);
+            font-size: 0.95rem;
+        }
+
+        .summary-value {
+            font-weight: 600;
+            color: var(--color-text);
+        }
+
+        /* ==========================================
+           CONFIRMACIÓN
+           ========================================== */
+        .confirmation {
+            text-align: center;
+            padding: 2rem;
+        }
+
+        .success-icon {
+            width: 100px;
+            height: 100px;
+            background: var(--color-success);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 3rem;
+            margin: 0 auto 2rem;
+            animation: scaleIn 0.5s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+        }
+
+        @keyframes scaleIn {
+            0% {
+                transform: scale(0);
+                opacity: 0;
+            }
+            100% {
+                transform: scale(1);
+                opacity: 1;
+            }
+        }
+
+        .confirmation-title {
+            font-family: var(--font-display);
+            font-size: 2rem;
+            font-weight: 600;
+            color: var(--color-text);
+            margin-bottom: 1rem;
+        }
+
+        .confirmation-text {
+            color: var(--color-text-light);
+            line-height: 1.6;
+            margin-bottom: 2rem;
+        }
+
+        /* ==========================================
+           FOOTER BUTTONS
+           ========================================== */
+        .footer-buttons {
+            padding: 1.5rem;
+            background: var(--color-white);
+            border-top: 1px solid var(--color-border);
+            display: flex;
+            gap: 1rem;
+        }
+
+        .footer-buttons .btn {
+            flex: 1;
+        }
+
+        /* ==========================================
+           SECTION TITLE
+           ========================================== */
+        .section-title {
+            font-family: var(--font-display);
+            font-size: 1.5rem;
+            font-weight: 600;
+            color: var(--color-text);
+            margin-bottom: 1.5rem;
+        }
+
+        /* ==========================================
+           ANIMACIONES
+           ========================================== */
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .fade-in {
+            animation: fadeIn 0.5s ease-out;
+        }
+    </style>
+</head>
+<body>
+    <div class="app">
+        
+        <!-- PANTALLA 1: BIENVENIDA -->
+        <div class="screen active" id="screen-welcome">
+            <div class="welcome-screen">
+                <div class="logo">✨</div>
+                <h1 class="welcome-title">Bella Estética</h1>
+                <p class="welcome-subtitle">Tu belleza es nuestra pasión.<br>Reserva tu turno en segundos.</p>
+                <button class="btn btn-primary" onclick="goToScreen('screen-services')">
+                    Agendar Turno
+                </button>
+            </div>
+        </div>
+
+        <!-- PANTALLA 2: SELECCIÓN DE SERVICIO -->
+        <div class="screen" id="screen-services">
+            <div class="header">
+                <button class="back-btn" onclick="goToScreen('screen-welcome')">←</button>
+                <h2 class="header-title">Servicios</h2>
+                <div class="header-spacer"></div>
+            </div>
+            <div class="content">
+                <div class="content-inner">
+                    <p class="section-title">¿Qué servicio necesitas?</p>
+                    <div class="services-grid">
+                        <div class="service-card" onclick="selectService('peluqueria', this)">
+                            <div class="service-icon">💇‍♀️</div>
+                            <div class="service-name">Peluquería</div>
+                            <div class="service-price">$3,500</div>
+                            <div class="service-duration">60 min</div>
+                        </div>
+                        <div class="service-card" onclick="selectService('manicuria', this)">
+                            <div class="service-icon">💅</div>
+                            <div class="service-name">Manicuría</div>
+                            <div class="service-price">$2,000</div>
+                            <div class="service-duration">45 min</div>
+                        </div>
+                        <div class="service-card" onclick="selectService('depilacion', this)">
+                            <div class="service-icon">✨</div>
+                            <div class="service-name">Depilación</div>
+                            <div class="service-price">$2,500</div>
+                            <div class="service-duration">30 min</div>
+                        </div>
+                        <div class="service-card" onclick="selectService('limpieza', this)">
+                            <div class="service-icon">🧖‍♀️</div>
+                            <div class="service-name">Limpieza Facial</div>
+                            <div class="service-price">$4,000</div>
+                            <div class="service-duration">90 min</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="footer-buttons">
+                <button class="btn btn-primary" onclick="goToScreen('screen-calendar')" id="btn-continue-service" disabled>
+                    Continuar
+                </button>
+            </div>
+        </div>
+
+        <!-- PANTALLA 3: CALENDARIO -->
+        <div class="screen" id="screen-calendar">
+            <div class="header">
+                <button class="back-btn" onclick="goToScreen('screen-services')">←</button>
+                <h2 class="header-title">Fecha y Hora</h2>
+                <div class="header-spacer"></div>
+            </div>
+            <div class="content">
+                <div class="content-inner">
+                    <div class="calendar">
+                        <div class="calendar-header">
+                            <button class="calendar-nav" onclick="changeMonth(-1)">‹</button>
+                            <div class="calendar-month" id="calendar-month">Febrero 2026</div>
+                            <button class="calendar-nav" onclick="changeMonth(1)">›</button>
+                        </div>
+                        <div class="calendar-days">
+                            <div class="calendar-day-label">Dom</div>
+                            <div class="calendar-day-label">Lun</div>
+                            <div class="calendar-day-label">Mar</div>
+                            <div class="calendar-day-label">Mié</div>
+                            <div class="calendar-day-label">Jue</div>
+                            <div class="calendar-day-label">Vie</div>
+                            <div class="calendar-day-label">Sáb</div>
+                        </div>
+                        <div class="calendar-days" id="calendar-grid"></div>
+                    </div>
+
+                    <p class="section-title">Horarios disponibles</p>
+                    <div class="time-slots" id="time-slots"></div>
+                </div>
+            </div>
+            <div class="footer-buttons">
+                <button class="btn btn-primary" onclick="goToScreen('screen-contact')" id="btn-continue-date" disabled>
+                    Continuar
+                </button>
+            </div>
+        </div>
+
+        <!-- PANTALLA 4: DATOS DE CONTACTO -->
+        <div class="screen" id="screen-contact">
+            <div class="header">
+                <button class="back-btn" onclick="goToScreen('screen-calendar')">←</button>
+                <h2 class="header-title">Tus Datos</h2>
+                <div class="header-spacer"></div>
+            </div>
+            <div class="content">
+                <div class="content-inner">
+                    <p class="section-title">Información de contacto</p>
+                    <form id="contact-form">
+                        <div class="form-group">
+                            <label class="form-label">Nombre completo</label>
+                            <input type="text" class="form-input" id="name" placeholder="María González" required>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Teléfono</label>
+                            <input type="tel" class="form-input" id="phone" placeholder="+54 9 11 1234-5678" required>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Email (opcional)</label>
+                            <input type="email" class="form-input" id="email" placeholder="maria@ejemplo.com">
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Comentarios (opcional)</label>
+                            <input type="text" class="form-input" id="comments" placeholder="Alguna preferencia especial...">
+                        </div>
+                    </form>
+                </div>
+            </div>
+            <div class="footer-buttons">
+                <button class="btn btn-primary" onclick="goToScreen('screen-summary')">
+                    Continuar
+                </button>
+            </div>
+        </div>
+
+        <!-- PANTALLA 5: RESUMEN -->
+        <div class="screen" id="screen-summary">
+            <div class="header">
+                <button class="back-btn" onclick="goToScreen('screen-contact')">←</button>
+                <h2 class="header-title">Confirmar</h2>
+                <div class="header-spacer"></div>
+            </div>
+            <div class="content">
+                <div class="content-inner">
+                    <div class="summary-card">
+                        <div class="summary-title">Resumen de tu turno</div>
+                        <div class="summary-item">
+                            <span class="summary-label">Servicio</span>
+                            <span class="summary-value" id="summary-service">-</span>
+                        </div>
+                        <div class="summary-item">
+                            <span class="summary-label">Fecha</span>
+                            <span class="summary-value" id="summary-date">-</span>
+                        </div>
+                        <div class="summary-item">
+                            <span class="summary-label">Hora</span>
+                            <span class="summary-value" id="summary-time">-</span>
+                        </div>
+                        <div class="summary-item">
+                            <span class="summary-label">Nombre</span>
+                            <span class="summary-value" id="summary-name">-</span>
+                        </div>
+                        <div class="summary-item">
+                            <span class="summary-label">Teléfono</span>
+                            <span class="summary-value" id="summary-phone">-</span>
+                        </div>
+                        <div class="summary-item">
+                            <span class="summary-label">Precio</span>
+                            <span class="summary-value" id="summary-price">-</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="footer-buttons">
+                <button class="btn btn-outline" onclick="goToScreen('screen-welcome')">Cancelar</button>
+                <button class="btn btn-primary" onclick="confirmAppointment()">Confirmar Turno</button>
+            </div>
+        </div>
+
+        <!-- PANTALLA 6: CONFIRMACIÓN -->
+        <div class="screen" id="screen-confirmation">
+            <div class="content">
+                <div class="confirmation">
+                    <div class="success-icon">✓</div>
+                    <h2 class="confirmation-title">¡Turno Confirmado!</h2>
+                    <p class="confirmation-text">
+                        Tu turno ha sido agendado exitosamente.<br>
+                        Recibirás un recordatorio por WhatsApp 24hs antes.
+                    </p>
+                    <div class="summary-card" style="text-align: left;">
+                        <div class="summary-item">
+                            <span class="summary-label">Servicio</span>
+                            <span class="summary-value" id="final-service">-</span>
+                        </div>
+                        <div class="summary-item">
+                            <span class="summary-label">Fecha</span>
+                            <span class="summary-value" id="final-date">-</span>
+                        </div>
+                        <div class="summary-item">
+                            <span class="summary-label">Hora</span>
+                            <span class="summary-value" id="final-time">-</span>
+                        </div>
+                    </div>
+                    <button class="btn btn-primary" onclick="goToScreen('screen-welcome')" style="margin-top: 2rem;">
+                        Volver al Inicio
+                    </button>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <script>
+        // ==========================================
+        // ESTADO DE LA APLICACIÓN
+        // ==========================================
+        const state = {
+            service: null,
+            serviceName: null,
+            servicePrice: null,
+            date: null,
+            time: null,
+            name: null,
+            phone: null,
+            email: null,
+            comments: null,
+            currentMonth: new Date().getMonth(),
+            currentYear: new Date().getFullYear()
+        };
+
+        const services = {
+            'peluqueria': { name: 'Peluquería', price: '$3,500' },
+            'manicuria': { name: 'Manicuría', price: '$2,000' },
+            'depilacion': { name: 'Depilación', price: '$2,500' },
+            'limpieza': { name: 'Limpieza Facial', price: '$4,000' }
+        };
+
+        // ==========================================
+        // NAVEGACIÓN ENTRE PANTALLAS
+        // ==========================================
+        function goToScreen(screenId) {
+            const currentScreen = document.querySelector('.screen.active');
+            const nextScreen = document.getElementById(screenId);
+            
+            currentScreen.classList.add('exit-left');
+            setTimeout(() => {
+                currentScreen.classList.remove('active', 'exit-left');
+                nextScreen.classList.add('active');
+            }, 300);
+
+            // Actualizar resumen si vamos a la pantalla de resumen
+            if (screenId === 'screen-summary') {
+                updateSummary();
+            }
+        }
+
+        // ==========================================
+        // SELECCIÓN DE SERVICIO
+        // ==========================================
+        function selectService(service, element) {
+            // Remover selección anterior
+            document.querySelectorAll('.service-card').forEach(card => {
+                card.classList.remove('selected');
+            });
+            
+            // Seleccionar nuevo servicio
+            element.classList.add('selected');
+            state.service = service;
+            state.serviceName = services[service].name;
+            state.servicePrice = services[service].price;
+            
+            // Habilitar botón continuar
+            document.getElementById('btn-continue-service').disabled = false;
+        }
+
+        // ==========================================
+        // CALENDARIO
+        // ==========================================
+        function renderCalendar() {
+            const grid = document.getElementById('calendar-grid');
+            grid.innerHTML = '';
+            
+            const firstDay = new Date(state.currentYear, state.currentMonth, 1);
+            const lastDay = new Date(state.currentYear, state.currentMonth + 1, 0);
+            const startingDayOfWeek = firstDay.getDay();
+            const today = new Date();
+            today.setHours(0, 0, 0, 0);
+            
+            // Días vacíos al inicio
+            for (let i = 0; i < startingDayOfWeek; i++) {
+                const emptyDay = document.createElement('div');
+                emptyDay.className = 'calendar-day disabled';
+                grid.appendChild(emptyDay);
+            }
+            
+            // Días del mes
+            for (let day = 1; day <= lastDay.getDate(); day++) {
+                const dayElement = document.createElement('div');
+                dayElement.className = 'calendar-day';
+                dayElement.textContent = day;
+                
+                const currentDate = new Date(state.currentYear, state.currentMonth, day);
+                
+                // Deshabilitar días pasados
+                if (currentDate < today) {
+                    dayElement.classList.add('disabled');
+                } else {
+                    dayElement.onclick = () => selectDate(day);
+                }
+                
+                grid.appendChild(dayElement);
+            }
+            
+            // Actualizar título del mes
+            const monthNames = ['Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio',
+                              'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'];
+            document.getElementById('calendar-month').textContent = 
+                `${monthNames[state.currentMonth]} ${state.currentYear}`;
+        }
+
+        function changeMonth(direction) {
+            state.currentMonth += direction;
+            
+            if (state.currentMonth < 0) {
+                state.currentMonth = 11;
+                state.currentYear--;
+            } else if (state.currentMonth > 11) {
+                state.currentMonth = 0;
+                state.currentYear++;
+            }
+            
+            renderCalendar();
+            state.date = null;
+            state.time = null;
+            document.getElementById('btn-continue-date').disabled = true;
+            renderTimeSlots();
+        }
+
+        function selectDate(day) {
+            // Remover selección anterior
+            document.querySelectorAll('.calendar-day').forEach(d => {
+                d.classList.remove('selected');
+            });
+            
+            // Seleccionar nuevo día
+            event.target.classList.add('selected');
+            state.date = new Date(state.currentYear, state.currentMonth, day);
+            
+            // Renderizar horarios
+            renderTimeSlots();
+        }
+
+        function renderTimeSlots() {
+            const container = document.getElementById('time-slots');
+            container.innerHTML = '';
+            
+            if (!state.date) {
+                return;
+            }
+            
+            const slots = [
+                '09:00', '10:00', '11:00',
+                '12:00', '14:00', '15:00',
+                '16:00', '17:00', '18:00'
+            ];
+            
+            slots.forEach(time => {
+                const slot = document.createElement('div');
+                slot.className = 'time-slot';
+                slot.textContent = time;
+                slot.onclick = () => selectTime(time, slot);
+                container.appendChild(slot);
+            });
+        }
+
+        function selectTime(time, element) {
+            // Remover selección anterior
+            document.querySelectorAll('.time-slot').forEach(slot => {
+                slot.classList.remove('selected');
+            });
+            
+            // Seleccionar nuevo horario
+            element.classList.add('selected');
+            state.time = time;
+            
+            // Habilitar botón continuar
+            document.getElementById('btn-continue-date').disabled = false;
+        }
+
+        // ==========================================
+        // RESUMEN Y CONFIRMACIÓN
+        // ==========================================
+        function updateSummary() {
+            // Obtener datos del formulario
+            state.name = document.getElementById('name').value;
+            state.phone = document.getElementById('phone').value;
+            state.email = document.getElementById('email').value;
+            state.comments = document.getElementById('comments').value;
+            
+            // Formatear fecha
+            const dateStr = state.date ? 
+                `${state.date.getDate()}/${state.date.getMonth() + 1}/${state.date.getFullYear()}` : '-';
+            
+            // Actualizar resumen
+            document.getElementById('summary-service').textContent = state.serviceName || '-';
+            document.getElementById('summary-date').textContent = dateStr;
+            document.getElementById('summary-time').textContent = state.time || '-';
+            document.getElementById('summary-name').textContent = state.name || '-';
+            document.getElementById('summary-phone').textContent = state.phone || '-';
+            document.getElementById('summary-price').textContent = state.servicePrice || '-';
+        }
+
+        async function confirmAppointment() {
+            // Preparar datos para enviar
+            const appointmentData = {
+                service: state.service,
+                serviceName: state.serviceName,
+                servicePrice: state.servicePrice,
+                date: state.date.toISOString(),
+                time: state.time,
+                name: state.name,
+                phone: state.phone,
+                email: state.email,
+                comments: state.comments
+            };
+            
+            try {
+                // Enviar al backend
+                const response = await fetch('http://localhost:3000/api/appointments', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(appointmentData)
+                });
+                
+                const result = await response.json();
+                
+                if (result.success) {
+                    // Actualizar confirmación final
+                    const dateStr = `${state.date.getDate()}/${state.date.getMonth() + 1}/${state.date.getFullYear()}`;
+                    document.getElementById('final-service').textContent = state.serviceName;
+                    document.getElementById('final-date').textContent = dateStr;
+                    document.getElementById('final-time').textContent = state.time;
+                    
+                    // Ir a pantalla de confirmación
+                    goToScreen('screen-confirmation');
+                } else {
+                    alert('Error al confirmar el turno. Por favor intenta nuevamente.');
+                }
+                
+            } catch (error) {
+                console.error('Error:', error);
+                alert('Error de conexión. Por favor verifica que el servidor esté funcionando.');
+            }
+        }
+
+        // ==========================================
+        // INICIALIZACIÓN
+        // ==========================================
+        document.addEventListener('DOMContentLoaded', () => {
+            renderCalendar();
+        });
+    </script>
+</body>
+</html>
