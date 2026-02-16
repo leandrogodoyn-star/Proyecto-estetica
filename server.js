@@ -89,7 +89,6 @@ app.get("/", (req, res) => {
   res.send("Servidor funcionando correctamente 🚀");
 });
 
-
 // health check (Railway usa esto)
 app.get("/health", (req, res) => {
   res.json({ status: "ok" });
@@ -260,11 +259,11 @@ app.use((err, req, res, next) => {
 // =======================
 
 async function start() {
+  await initDatabase();
+
   app.listen(PORT, "0.0.0.0", () => {
     console.log("Servidor activo en puerto " + PORT);
   });
-
-  await initDatabase();
 }
 
 start();
