@@ -1,179 +1,191 @@
+// ======================================================
+// SERVER PROFESIONAL — APP TURNOS ESTÉTICA
+// Ready for Railway / Render / VPS
+// ======================================================
 
-// ==========================================
-// BACKEND - SERVIDOR PARA APP DE ESTÉTICA
-// ==========================================
-
-const express = require('express');
-const cors = require('cors');
-const fs = require('fs').promises;
-const path = require('path');
+const express = require("express");
+const cors = require("cors");
+const fs = require("fs").promises;
+const path = require("path");
 
 const app = express();
 const PORT = process.env.PORT || 3000;
 
+// =======================
+// CONFIG
+// =======================
+
 app.use(cors());
-app.use(express.json());
-app.use(express.static('public'));
+app.use(express.json({ limit: "1mb" }));
+app.use(express.static("public"));
 
-const DB_FILE = path.join(__dirname, 'appointments.json');
+// security headers
+app.use((req, res, next) => {
+  res.setHeader("X-Content-Type-Options", "nosniff");
+  res.setHeader("X-Frame-Options", "DENY");
+  res.setHeader("X-XSS-Protection", "1; mode=block");
+  next();
+});
 
-// ==========================================
+// simple logger
+app.use((req, res, next) => {
+  console.log(`${new Date().toISOString()} | ${req.method} ${req.url}`);
+  next();
+});
+
+// =======================
+// DATABASE FILE
+// =======================
+
+// Railway necesita /tmp
+const DB_FILE = "/tmp/appointments.json";
+
+// =======================
 // DB INIT
-// ==========================================
+// =======================
+
 async function initDatabase() {
-    try {
-        await fs.access(DB_FILE);
-    } catch {
-        await fs.writeFile(DB_FILE, JSON.stringify({ appointments: [] }, null, 2));
-        console.log('Base de datos creada');
-    }
+  try {
+    await fs.access(DB_FILE);
+  } catch {
+    await fs.writeFile(DB_FILE, JSON.stringify({ appointments: [] }, null, 2));
+    console.log("DB creada");
+  }
 }
 
-// ==========================================
-// DB FUNCTIONS
-// ==========================================
-async function getAppointments() {
-    try {
-        const data = await fs.readFile(DB_FILE, 'utf8');
-        const parsed = JSON.parse(data);
-        if (!parsed.appointments) parsed.appointments = [];
-        return parsed;
-    } catch {
-        return { appointments: [] };
-    }
+// =======================
+// DB HELPERS
+// =======================
+
+async function readDB() {
+  try {
+    const raw = await fs.readFile(DB_FILE, "utf8");
+    return JSON.parse(raw);
+  } catch {
+    return { appointments: [] };
+  }
 }
 
-async function saveAppointments(data) {
-    await fs.writeFile(DB_FILE, JSON.stringify(data, null, 2));
+async function writeDB(data) {
+  await fs.writeFile(DB_FILE, JSON.stringify(data, null, 2));
 }
 
-// ==========================================
-// API
-// ==========================================
+// =======================
+// VALIDATOR
+// =======================
 
-app.get('/api/appointments', async (req, res) => {
-    try {
-        const data = await getAppointments();
-        res.json(data.appointments);
-    } catch {
-        res.status(500).json({ error: 'Error al obtener turnos' });
-    }
+function validateAppointment(body) {
+  const required = ["service", "date", "time", "name", "phone"];
+  for (let field of required) {
+    if (!body[field]) return `Falta campo: ${field}`;
+  }
+  return null;
+}
+
+// =======================
+// ROUTES API
+// =======================
+
+// health check (Railway usa esto)
+app.get("/health", (req, res) => {
+  res.json({ status: "ok" });
 });
 
-app.post('/api/appointments', async (req, res) => {
-    try {
-        const { service, serviceName, servicePrice, date, time, name, phone, email, comments } = req.body;
-
-        if (!service || !date || !time || !name || !phone) {
-            return res.status(400).json({ error: 'Faltan datos requeridos' });
-        }
-
-        const data = await getAppointments();
-
-        const newAppointment = {
-            id: Date.now().toString(),
-            service,
-            serviceName,
-            servicePrice,
-            date,
-            time,
-            name,
-            phone,
-            email: email || '',
-            comments: comments || '',
-            status: 'confirmado',
-            createdAt: new Date().toISOString()
-        };
-
-        data.appointments.push(newAppointment);
-        await saveAppointments(data);
-
-        res.status(201).json({
-            success: true,
-            appointment: newAppointment
-        });
-
-    } catch (error) {
-        res.status(500).json({ error: 'Error al crear turno' });
-    }
+// obtener turnos
+app.get("/api/appointments", async (req, res) => {
+  const db = await readDB();
+  res.json(db.appointments);
 });
 
-app.get('/api/appointments/busy/:date', async (req, res) => {
-    try {
-        const { date } = req.params;
-        const data = await getAppointments();
+// crear turno
+app.post("/api/appointments", async (req, res) => {
+  const error = validateAppointment(req.body);
+  if (error) return res.status(400).json({ error });
 
-        const busySlots = data.appointments
-            .filter(a => a.date === date && a.status !== 'cancelado')
-            .map(a => a.time);
+  const db = await readDB();
 
-        res.json({ busySlots });
+  const newAppointment = {
+    id: Date.now().toString(),
+    service: req.body.service,
+    serviceName: req.body.serviceName || "",
+    servicePrice: req.body.servicePrice || "",
+    date: req.body.date,
+    time: req.body.time,
+    name: req.body.name,
+    phone: req.body.phone,
+    email: req.body.email || "",
+    comments: req.body.comments || "",
+    status: "confirmado",
+    createdAt: new Date().toISOString(),
+  };
 
-    } catch {
-        res.status(500).json({ error: 'Error al obtener horarios' });
-    }
+  db.appointments.push(newAppointment);
+  await writeDB(db);
+
+  res.status(201).json({
+    success: true,
+    appointment: newAppointment,
+  });
 });
 
-app.delete('/api/appointments/:id', async (req, res) => {
-    try {
-        const { id } = req.params;
-        const data = await getAppointments();
+// horarios ocupados
+app.get("/api/appointments/busy/:date", async (req, res) => {
+  const db = await readDB();
 
-        const appointment = data.appointments.find(a => a.id === id);
-        if (!appointment) return res.status(404).json({ error: 'No encontrado' });
+  const busy = db.appointments
+    .filter((a) => a.date === req.params.date && a.status !== "cancelado")
+    .map((a) => a.time);
 
-        appointment.status = 'cancelado';
-        await saveAppointments(data);
-
-        res.json({ success: true });
-
-    } catch {
-        res.status(500).json({ error: 'Error al cancelar' });
-    }
+  res.json({ busySlots: busy });
 });
 
-app.get('/api/appointments/today', async (req, res) => {
-    try {
-        const today = new Date().toISOString().split('T')[0];
-        const data = await getAppointments();
+// cancelar turno
+app.delete("/api/appointments/:id", async (req, res) => {
+  const db = await readDB();
 
-        const list = data.appointments
-            .filter(a => a.date === today && a.status === 'confirmado')
-            .sort((a, b) => a.time.localeCompare(b.time));
+  const appt = db.appointments.find((a) => a.id === req.params.id);
+  if (!appt) return res.status(404).json({ error: "No encontrado" });
 
-        res.json(list);
+  appt.status = "cancelado";
+  await writeDB(db);
 
-    } catch {
-        res.status(500).json({ error: 'Error' });
-    }
+  res.json({ success: true });
 });
 
-// ==========================================
+// turnos de hoy
+app.get("/api/appointments/today", async (req, res) => {
+  const today = new Date().toISOString().split("T")[0];
+  const db = await readDB();
+
+  const list = db.appointments
+    .filter((a) => a.date === today && a.status === "confirmado")
+    .sort((a, b) => a.time.localeCompare(b.time));
+
+  res.json(list);
+});
+
+// =======================
 // PANEL ADMIN
-// ==========================================
+// =======================
 
-app.get('/admin', (req, res) => {
-res.send(`
+app.get("/admin", (req, res) => {
+  res.send(`
 <!DOCTYPE html>
-<html lang="es">
+<html>
 <head>
-<meta charset="UTF-8">
 <title>Panel</title>
 <style>
-body{font-family:sans-serif;background:#f5f5f5;padding:2rem}
-.container{max-width:1100px;margin:auto}
-table{width:100%;border-collapse:collapse;background:#fff}
+body{font-family:sans-serif;background:#f4f4f4;padding:20px}
+table{width:100%;background:white;border-collapse:collapse}
 th{background:#D4AF86;color:white;padding:10px}
 td{padding:10px;border-bottom:1px solid #eee}
-button{padding:6px 12px;background:#ff5252;color:white;border:none;border-radius:6px;cursor:pointer}
+button{background:#ff5252;color:white;border:none;padding:6px 12px;border-radius:6px;cursor:pointer}
 </style>
 </head>
 <body>
 
-<div class="container">
-<h2>Panel de Turnos</h2>
-
-<button onclick="loadAppointments()">Actualizar</button>
+<h2>Turnos</h2>
+<button onclick="load()">Actualizar</button>
 
 <table>
 <thead>
@@ -190,13 +202,11 @@ button{padding:6px 12px;background:#ff5252;color:white;border:none;border-radius
 </thead>
 <tbody id="list"></tbody>
 </table>
-</div>
 
 <script>
-async function loadAppointments(){
+async function load(){
 const res=await fetch('/api/appointments');
 const data=await res.json();
-
 const tbody=document.getElementById('list');
 
 if(!data.length){
@@ -204,52 +214,53 @@ tbody.innerHTML='<tr><td colspan="8">Sin turnos</td></tr>';
 return;
 }
 
-data.sort((a,b)=>{
-if(a.date===b.date)return a.time.localeCompare(b.time);
-return b.date.localeCompare(a.date);
-});
-
-tbody.innerHTML=data.map(function(a){
-return '<tr>'+
-'<td>'+formatDate(a.date)+'</td>'+
-'<td>'+a.time+'</td>'+
-'<td>'+a.name+'</td>'+
-'<td>'+a.phone+'</td>'+
-'<td>'+a.serviceName+'</td>'+
-'<td>'+a.servicePrice+'</td>'+
-'<td>'+a.status+'</td>'+
-'<td>'+(a.status==='confirmado'
-? '<button onclick="cancelAppointment(\\''+a.id+'\\')">Cancelar</button>'
-: '-')+
-'</td>'+
-'</tr>';
-}).join('');
+tbody.innerHTML=data.map(a=>\`
+<tr>
+<td>\${new Date(a.date).toLocaleDateString()}</td>
+<td>\${a.time}</td>
+<td>\${a.name}</td>
+<td>\${a.phone}</td>
+<td>\${a.serviceName}</td>
+<td>\${a.servicePrice}</td>
+<td>\${a.status}</td>
+<td>\${a.status==="confirmado"
+?'<button onclick="cancel(\\''+a.id+'\\')">Cancelar</button>'
+:'-'}</td>
+</tr>\`).join('');
 }
 
-async function cancelAppointment(id){
-if(!confirm('Cancelar turno?'))return;
-await fetch('/api/appointments/'+id,{method:'DELETE'});
-loadAppointments();
+async function cancel(id){
+if(!confirm("Cancelar turno?"))return;
+await fetch("/api/appointments/"+id,{method:"DELETE"});
+load();
 }
 
-function formatDate(d){
-const date=new Date(d);
-return date.toLocaleDateString('es-AR');
-}
-
-loadAppointments();
+load();
 </script>
-
 </body>
 </html>
 `);
 });
 
-// ==========================================
-// START
-// ==========================================
-async function start(){
-await initDatabase();
-app.listen(PORT,()=>console.log("Servidor en http://localhost:"+PORT));
+// =======================
+// ERROR HANDLER
+// =======================
+
+app.use((err, req, res, next) => {
+  console.error("ERROR:", err);
+  res.status(500).json({ error: "Error interno del servidor" });
+});
+
+// =======================
+// START SERVER
+// =======================
+
+async function start() {
+  await initDatabase();
+
+  app.listen(PORT, "0.0.0.0", () => {
+    console.log("Servidor activo en puerto " + PORT);
+  });
 }
+
 start();
