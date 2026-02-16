@@ -256,11 +256,11 @@ app.use((err, req, res, next) => {
 // =======================
 
 async function start() {
-  await initDatabase();
-
   app.listen(PORT, "0.0.0.0", () => {
     console.log("Servidor activo en puerto " + PORT);
   });
+
+  await initDatabase();
 }
 
 start();
