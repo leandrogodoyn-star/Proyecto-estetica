@@ -96,8 +96,13 @@ app.get("/health", (req, res) => {
 
 // obtener turnos
 app.get("/api/appointments", async (req, res) => {
-  const db = await readDB();
-  res.json(db.appointments);
+  try {
+    const db = await readDB();
+    res.json(db.appointments || []);
+  } catch (err) {
+    console.error("ERROR GET APPOINTMENTS:", err);
+    res.status(500).json({ error: "Error leyendo base de datos" });
+  }
 });
 
 // crear turno
