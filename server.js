@@ -85,6 +85,10 @@ function validateAppointment(body) {
 // =======================
 // ROUTES API
 // =======================
+app.get("/", (req, res) => {
+  res.send("Servidor funcionando correctamente 🚀");
+});
+
 
 // health check (Railway usa esto)
 app.get("/health", (req, res) => {
